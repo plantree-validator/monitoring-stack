@@ -1,0 +1,94 @@
+version: '3.7'
+
+volumes:
+    vm_data: {}
+    grafana_data: {}
+    vmagent_data: {}
+    loki_data: {}
+
+services:
+  victoriametrics:
+    image: victoriametrics/victoria-metrics
+    command:
+      - '--httpListenAddr=:8428'  # Listen on all interfaces for HTTPS
+    container_name: victoriametrics
+    ports:
+      - "8428:8428"
+    volumes:
+      - vm_data:/victoriametrics-data
+      - ./victoriametrics.yaml:/etc/victoriametrics/victoriametrics.yaml:ro
+
+  vmagent:
+    container_name: vmagent
+    image: victoriametrics/vmagent
+    depends_on:
+      - "victoriametrics"
+    ports:
+      - 8429:8429
+    volumes:
+      - vmagent_data:/vmagentdata
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
+    command:
+      - "--promscrape.config=/etc/prometheus/prometheus.yaml"
+      - "--remoteWrite.url=http://victoriametrics:8428/api/v1/write"
+    restart: always
+  
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASS:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    user: root
+    command:
+      - '--config.file=/loki/loki.yaml'  # Use configuration file
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki.yaml:/loki/loki.yaml:ro
+      - loki_data:/loki/data
+
+  promtail:
+    image: grafana/promtail
+    container_name: promtail
+    volumes:
+      - /var/log:/var/log
+      - ./promtail.yaml:/etc/promtail/config.yaml:ro
+    command: -config.file=/etc/promtail/config.yaml
+
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro  # Optional configuration for advanced customization
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    ports:
+      - "9100:9100"  # Expose Node Exporter metrics endpoint
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: blackbox-exporter
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/blackbox/blackbox.yaml'  # Path to your configuration file
+    volumes:
+      - ./blackbox.yaml:/etc/blackbox/blackbox.yaml:ro  # Mount your configuration file
+    ports:
+      - "9115:9115" 

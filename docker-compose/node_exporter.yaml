@@ -1,0 +1,28 @@
+This is a basic configuration file for Node Exporter
+You can find more details and options in the official documentation:
+https://github.com/prometheus/node_exporter/blob/master/documentation/collector.md
+
+Enable collectors you want to expose metrics for (uncomment lines)
+collectd_netstat: {}
+collectd_processes: {}
+conntrack: {}
+cpu: {}
+disk: {}
+entropy: {}
+filesystem: {}
+load: {}
+meminfo: {}
+netstat: {}
+ntp: {}
+processes: {}
+statsd: {}
+systemd: {}
+tcpcheck: {}
+textfile: {}
+uptime: {}
+users: {}
+
+Example: Enable specific metrics within a collector
+cpu:
+  # Enable CPU temperature collection (if supported)
+  thermal: true

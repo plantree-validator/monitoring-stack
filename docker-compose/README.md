@@ -1,9 +1,28 @@
-# Setting Up Monitoring Stack on Ubuntu 22.04
+# **Monitoring stack with Victoria Metrics, Grafana and Loki**
+#### Includes:
 
-This guide helps you set up a monitoring stack on Ubuntu 22.04 using Docker, Docker Compose, VictoriaMetrics, Grafana, Loki, and Promtail.
+**1. VictoriaMetrics: **
+High-performance time series database for storing metrics data.
+**2. VMagent (VictoriaMetrics Agent)**: 
+Scrapes Prometheus targets and pushes metrics to VictoriaMetrics.
+**3. Grafana: **
+Popular visualization tool for creating informative dashboards from collected metrics.
+**4. Loki: **
+Time series log aggregator for storing and querying logs.
+**5. Promtail:** 
+Log collection agent that sends logs to Loki.
+**6. Node Exporter:**
+Exposes system metrics from the host machine.
+**7. Blackbox Exporter:**
+Performs external URL health checks and exposes results as metrics.
 
-## Step 1: Install Docker
 
+# Getting Started
+
+## Prerequisites:
+*Guide tested on Ubuntu 22.04 
+
+**1. Docker and Docker Compose installed on your system.**
 ```bash
 sudo apt update
 sudo apt install -y curl wget vim git apt-transport-https ca-certificates curl software-properties-common
@@ -11,31 +30,82 @@ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 sudo apt update
 sudo apt install -y docker-ce docker-ce-cli containerd.io
-```
-
-
-## Step 2: Add User to Docker Group and install Docker Compose
-
-```bash
 sudo usermod -aG docker $USER
 sudo apt install -y docker-compose
 ```
-## Step 3: Relogin to refresh user's privileges 
+Re-login after installation.
 
-## Step 4: Create Necessary Directories for Monitoring Stack
+**2. Configuration Files:**
 
+Prepare configuration files for each service as needed:
+- **.env file (mandatory)**
+rename **.env_example** to **.env** and change initial passwords for services.
+- prometheus.yaml
+- loki.yaml
+- promtail.yaml
+- blackbox.yaml
+Refer to the official documentation of each tool for configuration details.
+Environment Variables (Optional):
+
+**3. Clone and Start the Stack:**
+
+-  **Clone this repository using Git.**
 ```bash
-mkdir -p /opt/monitoring-stack/victoriametrics-data /opt/monitoring-stack/victoriametrics-data /opt/monitoring-stack/victoriametrics-data/grafana-data loki-data /opt/monitoring-stack/victoriametrics-data/promtail-config
+cd /opt && sudo git clone https://github.com/plantree-validator/monitoring-stack.git
+sudo chown -R $USER /opt/monitoring-stack/
+```
+- **Run docker-compose up -d to start the stack in detached mode.**
+```bash
+cd /opt/monitoring-stack/docker-compose/ && docker-compose up -d
 ```
 
-## Step 5: Clone repo
+## Accessing Services
 
-```bash
-git clone https://github.com/plantree-validator/monitoring-stack.git /opt
-```
+**1. VictoriaMetrics: **
+http://${hostIP}:8428 (default port)
+**2. Grafana: **
+http://${hostIP}:3000 (default port) 
+Login using credentials set in environment variables or defaults.
+**3. Loki: **
+http://${hostIP}:3100 (default port)
+**4. Node Exporter: **
+http://${hostIP}:9100 (default port)
+**5. Blackbox Exporter:**
+http://${hostIP}:9115 (default port)
+Access health check results as metrics through Grafana or other tools.
 
-## Step 6: Run docker-compose stack
+## Persistent Data Volumes
 
-```bash
-cd /opt/monitoring-stack && docker-compose up -d
-```
+The docker-compose configuration defines volumes to persist data:
+
+- vm_data: Stores VictoriaMetrics data.
+- vmagent_data: Stores VMagent state information.
+- grafana_data: Stores Grafana configuration and user data.
+- loki_data: Stores Loki log data.
+
+## Important Notes
+
+Expected usage:
+**Only following services exposed to the Internet via reverse proxy with SSL certificates:**
+**1. Grafana:**
+**2. Loki Push API:**
+Should be protected by auth: (https://grafana.com/docs/loki/latest/operations/authentication/)
+Example endpoint for push api: http://{hostIP}:3100/loki/api/v1/push
+
+## Reference links:
+
+VictoriaMetrics: https://victoriametrics.com/
+VMagent: https://docs.victoriametrics.com/vmagent/
+Grafana: https://grafana.com/
+Loki: https://grafana.com/docs/loki/latest/
+Promtail: https://grafana.com/docs/loki/latest/send-data/promtail/
+Node Exporter: https://prometheus.io/docs/guides/node-exporter/
+Blackbox Exporter: https://github.com/topics/blackbox-exporter
+Docker Compose: https://docs.docker.com/compose/
+
+
+## Contributing
+
+Feel free to submit pull requests for improvements or additional features.
+
+I hope this README.md provides a clear and informative guide to setting up and using the Docker Compose monitoring stack.
