@@ -63,7 +63,7 @@ Environment Variables (Optional):
 
 ```bash
 cd /opt && sudo git clone https://github.com/plantree-validator/monitoring-stack.git
-sudo chown -R $USER /opt/monitoring-stack/
+sudo chown -R $USER: /opt/monitoring-stack/
 ```
 
 - **Run docker-compose up -d to start the stack in detached mode.**
