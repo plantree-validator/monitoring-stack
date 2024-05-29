@@ -3,7 +3,6 @@ version: '3.7'
 volumes:
     vm_data: {}
     grafana_data: {}
-    vmagent_data: {}
     loki_data: {}
 
 services:
@@ -11,27 +10,13 @@ services:
     image: victoriametrics/victoria-metrics
     command:
       - '--httpListenAddr=:8428'  # Listen on all interfaces for HTTPS
+      - '--promscrape.config=/etc/victoriametrics/victoriametrics.yaml'
     container_name: victoriametrics
     ports:
       - "8428:8428"
     volumes:
       - vm_data:/victoriametrics-data
       - ./victoriametrics.yaml:/etc/victoriametrics/victoriametrics.yaml:ro
-
-  vmagent:
-    container_name: vmagent
-    image: victoriametrics/vmagent
-    depends_on:
-      - "victoriametrics"
-    ports:
-      - 8429:8429
-    volumes:
-      - vmagent_data:/vmagentdata
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
-    command:
-      - "--promscrape.config=/etc/prometheus/prometheus.yaml"
-      - "--remoteWrite.url=http://victoriametrics:8428/api/v1/write"
-    restart: always
   
   grafana:
     image: grafana/grafana
@@ -39,11 +24,20 @@ services:
     ports:
       - "3000:3000"
     environment:
+      - GF_SERVER_ROOT_URL=${GRAFANA_URL:-http://localhost:3000}
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASS:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_PROVISIONING_ENABLED=true  # Enable datasource provisioning
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-bottoken}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-10000}
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/datasources/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+      - ./grafana/provisioning/alerting/contactpoints.yaml:/etc/grafana/provisioning/alerting/contactpoints.yaml:ro
+      - ./grafana/provisioning/alerting/rules.yaml:/etc/grafana/provisioning/alerting/rules.yaml:ro
+      - ./grafana/provisioning/alerting/templates.yaml:/etc/grafana/provisioning/alerting/templates.yaml:ro
+      - ./grafana/provisioning/alerting/notification_policy.yaml:/etc/grafana/provisioning/alerting/notification_policy.yaml:ro
 
   loki:
     image: grafana/loki:latest

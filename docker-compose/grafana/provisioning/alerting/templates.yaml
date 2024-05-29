@@ -1,0 +1,48 @@
+apiVersion: 1
+templates:
+- name: telegram
+  orgID: 1
+  template: |
+    {{ define "telegram.print_alert_common" -}}
+    {{ .Annotations.summary }}
+       Target: {{ .Annotations.target }}
+       Value: {{ .Annotations.status }}
+    {{ if .DashboardURL -}}
+       Go to dashboard: {{ .DashboardURL }}
+    {{- end }}
+    {{- end }}
+
+
+    {{ define "telegram.title" -}}
+     Grafana Alerting System.
+    {{- end }}
+
+    {{ define "telegram.message_2xx" -}}
+    {{ if .Alerts.Firing -}}
+     Triggered {{ len .Alerts.Firing }} Alert(s):
+    {{ range .Alerts.Firing }}
+    {{ template "telegram.print_alert_2xx" . }}
+    {{ end -}}
+    {{ end }}
+    {{ if .Alerts.Resolved -}}
+     Resolved {{ len .Alerts.Resolved }} Alert(s):
+    {{ range .Alerts.Resolved }}
+    {{ template "telegram.print_alert_2xx" .}}
+    {{ end -}}
+    {{ end }}
+    {{- end }}
+
+    {{ define "telegram.message_common" -}}
+    {{ if .Alerts.Firing -}}
+     Triggered {{ len .Alerts.Firing }} Alert(s):
+    {{ range .Alerts.Firing }}
+    {{ template "telegram.print_alert_common" . }}
+    {{ end -}}
+    {{ end }}
+    {{ if .Alerts.Resolved -}}
+     Resolved {{ len .Alerts.Resolved }} Alert(s):
+    {{ range .Alerts.Resolved }}
+    {{ template "telegram.print_alert_common" .}}
+    {{ end -}}
+    {{ end }}
+    {{- end }}

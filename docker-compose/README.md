@@ -5,22 +5,19 @@
 **1. VictoriaMetrics:** \
 High-performance time series database for storing metrics data.
 
-**2. VMagent (VictoriaMetrics Agent):** \
-Scrapes Prometheus targets and pushes metrics to VictoriaMetrics.
-
-**3. Grafana:** \
+**2. Grafana:** \
 Popular visualization tool for creating informative dashboards from collected metrics.
 
-**4. Loki:** \
+**3. Loki:** \
 Time series log aggregator for storing and querying logs.
 
-**5. Promtail:** \
+**4. Promtail:** \
 Log collection agent that sends logs to Loki.
 
-**6. Node Exporter:** \
+**5. Node Exporter:** \
 Exposes system metrics from the host machine.
 
-**7. Blackbox Exporter:** \
+**6. Blackbox Exporter:** \
 Performs external URL health checks and exposes results as metrics.
 
 ## Getting Started
@@ -50,12 +47,11 @@ Prepare configuration files for each service as needed:
 
 - **.env file (mandatory)**
 rename **.env_example** to **.env** and change initial passwords for services.
-- prometheus.yaml
+- victorimetrics.yaml
 - loki.yaml
 - promtail.yaml
 - blackbox.yaml
 Refer to the official documentation of each tool for configuration details.
-Environment Variables (Optional):
 
 **3. Clone and Start the Stack:**
 
@@ -102,7 +98,6 @@ Access health check results as metrics through Grafana or other tools.
 The docker-compose configuration defines volumes to persist data:
 
 - vm_data: Stores VictoriaMetrics data.
-- vmagent_data: Stores VMagent state information.
 - grafana_data: Stores Grafana configuration and user data.
 - loki_data: Stores Loki log data.
 
@@ -119,7 +114,6 @@ Example endpoint for push api: <http://{hostIP}:3100/loki/api/v1/push>
 ## Reference links
 
 VictoriaMetrics: <https://victoriametrics.com/> \
-VMagent: <https://docs.victoriametrics.com/vmagent/> \
 Grafana: <https://grafana.com/> \
 Loki: <https://grafana.com/docs/loki/latest/> \
 Promtail: <https://grafana.com/docs/loki/latest/send-data/promtail/> \
