@@ -4,3 +4,8 @@ scrape_configs:
       - targets: ['node-exporter:9100']
         labels:
           instance: monitoring-host
+  - job_name: 'validators_scrape'
+    static_configs:
+      - targets: ['validators-exporter:9560']
+        labels:
+          instance: validators-exporter

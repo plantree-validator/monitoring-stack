@@ -38,7 +38,12 @@ services:
       - ./grafana/provisioning/alerting/rules.yaml:/etc/grafana/provisioning/alerting/rules.yaml:ro
       - ./grafana/provisioning/alerting/templates.yaml:/etc/grafana/provisioning/alerting/templates.yaml:ro
       - ./grafana/provisioning/alerting/notification_policy.yaml:/etc/grafana/provisioning/alerting/notification_policy.yaml:ro
-
+    depends_on:
+      - loki
+      - victoriametrics
+      - promtail
+      - node-exporter
+      - blackbox-exporter
   loki:
     image: grafana/loki:latest
     container_name: loki
@@ -86,3 +91,12 @@ services:
       - ./blackbox.yaml:/etc/blackbox/blackbox.yaml:ro  # Mount your configuration file
     ports:
       - "9115:9115" 
+
+  validators-exporter:
+    build: ./validators-exporter
+    container_name: validators-exporter
+    restart: unless-stopped
+    volumes:
+      - ./validators-exporter/config.toml:/config/config.toml:ro
+    ports:
+      - "9560:9560" # Adjust the port mapping as necessary

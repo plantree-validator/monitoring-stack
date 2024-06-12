@@ -280,7 +280,7 @@ groups:
               type: prometheus
               uid: vm
           editorMode: code
-          expr: 100*(1- (node_memory_MemFree_bytes+node_memory_Cached_bytes)/node_memory_MemTotal_bytes)
+          expr: 100*(1- (node_memory_MemFree_bytes+node_memory_Buffers_bytes+node_memory_Cached_bytes+node_memory_SReclaimable_bytes)/node_memory_MemTotal_bytes)
           instant: true
           intervalMs: 1000
           legendFormat: __auto
@@ -437,6 +437,267 @@ groups:
       status: '{{ printf "%.2f" $values.A.Value }} %'
       summary: Disk usage is high!
       target: '{{ $labels.instance }}; mountpoint: {{ $labels.mountpoint }}'
+    labels:
+      type: common_prod
+    isPaused: false
+  - uid: 6
+    title: missed_blocks
+    condition: C
+    data:
+      - refId: A
+        relativeTimeRange:
+          from: 600
+          to: 0
+        datasourceUid: vm
+        model:
+          datasource:
+              type: prometheus
+              uid: vm
+          editorMode: code
+          expr: cometbft_consensus_validator_missed_blocks
+          instant: true
+          intervalMs: 1000
+          legendFormat: __auto
+          maxDataPoints: 43200
+          range: false
+          refId: A
+      - refId: B
+        relativeTimeRange:
+          from: 600
+          to: 0
+        datasourceUid: __expr__
+        model:
+          conditions:
+              - evaluator:
+                  params: []
+                  type: gt
+                operator:
+                  type: and
+                query:
+                  params:
+                      - B
+                reducer:
+                  params: []
+                  type: last
+                type: query
+          datasource:
+              type: __expr__
+              uid: __expr__
+          expression: A
+          intervalMs: 1000
+          maxDataPoints: 43200
+          reducer: last
+          refId: B
+          type: reduce
+      - refId: C
+        relativeTimeRange:
+          from: 600
+          to: 0
+        datasourceUid: __expr__
+        model:
+          conditions:
+              - evaluator:
+                  params:
+                      - 50
+                  type: gt
+                operator:
+                  type: and
+                query:
+                  params:
+                      - C
+                reducer:
+                  params: []
+                  type: last
+                type: query
+          datasource:
+              type: __expr__
+              uid: __expr__
+          expression: B
+          intervalMs: 1000
+          maxDataPoints: 43200
+          refId: C
+          type: threshold
+    noDataState: Alerting
+    execErrState: Error
+    for: 5m
+    annotations:
+      status: '{{ printf "%.2f" $values.A.Value }} missed blocks!'
+      summary: Validator is missing blocks!
+      target: '{{ $labels.instance }} ; chain_id: {{ $labels.chain_id }}'
+    labels:
+      type: common_prod
+    isPaused: false
+  - uid: 7
+    title: sync_issues
+    condition: C
+    data:
+      - refId: A
+        relativeTimeRange:
+          from: 600
+          to: 0
+        datasourceUid: vm
+        model:
+          datasource:
+              type: prometheus
+              uid: vm
+          editorMode: code
+          expr: delta(cometbft_consensus_validator_last_signed_height[5m])
+          instant: true
+          intervalMs: 1000
+          legendFormat: __auto
+          maxDataPoints: 43200
+          range: false
+          refId: A
+      - refId: B
+        relativeTimeRange:
+          from: 600
+          to: 0
+        datasourceUid: __expr__
+        model:
+          conditions:
+              - evaluator:
+                  params: []
+                  type: gt
+                operator:
+                  type: and
+                query:
+                  params:
+                      - B
+                reducer:
+                  params: []
+                  type: last
+                type: query
+          datasource:
+              type: __expr__
+              uid: __expr__
+          expression: A
+          intervalMs: 1000
+          maxDataPoints: 43200
+          reducer: last
+          refId: B
+          type: reduce
+      - refId: C
+        relativeTimeRange:
+          from: 600
+          to: 0
+        datasourceUid: __expr__
+        model:
+          conditions:
+              - evaluator:
+                  params:
+                      - 25
+                  type: lt
+                operator:
+                  type: and
+                query:
+                  params:
+                      - C
+                reducer:
+                  params: []
+                  type: last
+                type: query
+          datasource:
+              type: __expr__
+              uid: __expr__
+          expression: B
+          intervalMs: 1000
+          maxDataPoints: 43200
+          refId: C
+          type: threshold
+    noDataState: Alerting
+    execErrState: Error
+    for: 5m
+    annotations:
+      status: 'Only {{ printf "%.2f" $values.A.Value }} blocks are signed during 5m'
+      summary: Validator is not signing blocks!
+      target: '{{ $labels.instance }} ; chain_id: {{ $labels.chain_id }}'
+    labels:
+      type: common_prod
+    isPaused: false
+  - uid: 7
+    title: peers_issues
+    condition: C
+    data:
+      - refId: A
+        relativeTimeRange:
+          from: 600
+          to: 0
+        datasourceUid: vm
+        model:
+          datasource:
+              type: prometheus
+              uid: vm
+          editorMode: code
+          expr: cometbft_p2p_peers
+          instant: true
+          intervalMs: 1000
+          legendFormat: __auto
+          maxDataPoints: 43200
+          range: false
+          refId: A
+      - refId: B
+        relativeTimeRange:
+          from: 600
+          to: 0
+        datasourceUid: __expr__
+        model:
+          conditions:
+              - evaluator:
+                  params: []
+                  type: gt
+                operator:
+                  type: and
+                query:
+                  params:
+                      - B
+                reducer:
+                  params: []
+                  type: last
+                type: query
+          datasource:
+              type: __expr__
+              uid: __expr__
+          expression: A
+          intervalMs: 1000
+          maxDataPoints: 43200
+          reducer: last
+          refId: B
+          type: reduce
+      - refId: C
+        relativeTimeRange:
+          from: 600
+          to: 0
+        datasourceUid: __expr__
+        model:
+          conditions:
+              - evaluator:
+                  params:
+                      - 5
+                  type: lt
+                operator:
+                  type: and
+                query:
+                  params:
+                      - C
+                reducer:
+                  params: []
+                  type: last
+                type: query
+          datasource:
+              type: __expr__
+              uid: __expr__
+          expression: B
+          intervalMs: 1000
+          maxDataPoints: 43200
+          refId: C
+          type: threshold
+    noDataState: Alerting
+    execErrState: Error
+    for: 5m
+    annotations:
+      status: '{{ printf "%.2f" $values.A.Value }} peers'
+      summary: Validator is running low on peers!
+      target: '{{ $labels.instance }} ; chain_id: {{ $labels.chain_id }}'
     labels:
       type: common_prod
     isPaused: false
