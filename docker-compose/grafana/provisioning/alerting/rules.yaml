@@ -614,7 +614,7 @@ groups:
     labels:
       type: common_prod
     isPaused: false
-  - uid: 7
+  - uid: 8
     title: peers_issues
     condition: C
     data:
